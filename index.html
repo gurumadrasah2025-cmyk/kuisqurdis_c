@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kuis PAI – Ilmu Tajwid dan Kejujuran dalam Muamalah</title>
+<style>
+:root{--primary:#176b55;--primary2:#0f513f;--bg:#f3f7f5;--card:#fff;--ink:#18332b;--muted:#65766f;--line:#dce8e2;--good:#e5f6ec;--bad:#fff0ef}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--ink);line-height:1.55}
+header{background:linear-gradient(135deg,var(--primary2),#21866a);color:#fff;padding:32px 18px;text-align:center}
+header h1{margin:0 0 8px;font-size:clamp(1.35rem,4vw,2rem)}header p{margin:0;opacity:.9}
+main{max-width:850px;margin:24px auto;padding:0 14px 40px}
+.panel,.question,.result{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 4px 18px #173d2c0a}
+label.field{display:block;font-weight:650;margin-bottom:7px}input[type=text]{width:100%;padding:12px 13px;border:1px solid #bdcec5;border-radius:10px;font:inherit}
+.meta{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:.92rem;margin:12px 0}
+.progress{height:8px;background:#e5eee9;border-radius:99px;overflow:hidden}.progress span{display:block;height:100%;background:var(--primary);width:0;transition:width .2s}
+.question h3{font-size:1.03rem;margin:0 0 13px}.number{color:var(--primary);font-weight:750}
+.option{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin:8px 0;cursor:pointer}
+.option:hover{background:#f5faf7;border-color:#9dbdaf}.option input{margin-top:5px;accent-color:var(--primary)}
+button{border:0;border-radius:11px;background:var(--primary);color:#fff;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer}
+button:hover{background:var(--primary2)}button:disabled{opacity:.5;cursor:not-allowed}.actions{display:flex;gap:10px;flex-wrap:wrap}.secondary{background:#e6efea;color:var(--ink)}.secondary:hover{background:#d6e6dd}
+.hidden{display:none}.result{text-align:center}.score{font-size:2.5rem;font-weight:800;color:var(--primary);margin:6px}
+.review{text-align:left;margin-top:20px}.review-item{padding:12px;border-radius:10px;margin:10px 0;background:#f5f8f6}.review-item.correct{background:var(--good)}.review-item.wrong{background:var(--bad)}
+.small{color:var(--muted);font-size:.9rem}footer{text-align:center;color:var(--muted);padding:10px 16px 30px;font-size:.88rem}
+@media(min-width:650px){.panel{padding:24px}.question{padding:22px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Kuis Pendidikan Agama Islam</h1>
+  <p>Ilmu Tajwid, Surah Al-Muthaffifin, Surah Al-An’am, dan Kejujuran dalam Muamalah</p>
+</header>
+<main>
+  <section class="panel" id="intro">
+    <label class="field" for="student">Nama peserta</label>
+    <input id="student" type="text" placeholder="Masukkan nama lengkap" autocomplete="name">
+    <div class="meta"><span>25 soal pilihan ganda</span><span>Nilai maksimal 100</span></div>
+    <p class="small">Pilih satu jawaban yang paling tepat untuk setiap soal. Setelah selesai, tekan tombol <b>Kumpulkan Jawaban</b> untuk melihat nilai dan pembahasan singkat.</p>
+    <button id="startBtn">Mulai Mengerjakan</button>
+  </section>
+  <section id="quiz" class="hidden">
+    <div class="panel">
+      <div class="meta"><strong id="studentLabel"></strong><span id="progressText">0 dari 25 terjawab</span></div>
+      <div class="progress"><span id="progressBar"></span></div>
+    </div>
+    <form id="quizForm"></form>
+    <div class="panel actions">
+      <button type="button" id="submitBtn">Kumpulkan Jawaban</button>
+      <button type="button" class="secondary" id="resetBtn">Ulangi dari Awal</button>
+    </div>
+  </section>
+  <section id="result" class="result hidden">
+    <h2>Hasil Kuis</h2>
+    <div id="resultName"></div>
+    <div class="score" id="score"></div>
+    <div id="summary"></div>
+    <div class="review" id="review"></div>
+    <button id="againBtn">Kerjakan Lagi</button>
+  </section>
+</main>
+<footer>Semangat belajar. Kerjakan dengan jujur dan teliti.</footer>
+<script>
+const questions = [
+["Dalam istilah ilmu tajwid, tujuan utama mempelajari kaidah membaca Al-Qur’an adalah ....",["memperindah suara tanpa memperhatikan makhraj","membaca Al-Qur’an dengan benar sesuai kaidah bacaannya","mempercepat bacaan agar segera selesai","menghafalkan seluruh nama surah"],1],
+["Menurut ringkasan materi pada buku, hukum mempelajari ilmu tajwid secara teori adalah ....",["fardu ain","sunah muakkad","fardu kifayah","mubah"],2],
+["Hukum membaca Al-Qur’an dengan baik dan benar sesuai kaidah tajwid bagi setiap pembaca adalah ....",["fardu ain","fardu kifayah","makruh","mubah"],0],
+["Mad secara bahasa berarti ....",["jelas","panjang atau memanjangkan","dengung","samar"],1],
+["Mad lazim terjadi apabila huruf mad bertemu dengan ....",["hamzah berharakat fathah","sukun asli","tanwin kasrah","huruf berharakat dammah"],1],
+["Panjang bacaan mad lazim adalah ....",["2 harakat","4 harakat","5 harakat","6 harakat"],3],
+["Mad lazim kilmi mutsaqqal terjadi ketika huruf mad bertemu sukun asli dalam satu kata dan setelahnya terdapat ....",["huruf bertasydid","huruf qalqalah di akhir ayat","tanwin","hamzah wasal"],0],
+["Perbedaan utama mad lazim harfi mukhaffaf dan mad lazim harfi mutsaqqal terletak pada ....",["jumlah ayat dalam surah","ada atau tidaknya proses idgam setelah huruf mad pada huruf pembuka surah","jenis tanda waqaf","letak basmalah"],1],
+["Surah Al-Muthaffifin ayat 1 memberikan peringatan keras kepada orang-orang yang ....",["meninggalkan salat","mengurangi takaran dan timbangan","tidak melakukan perjalanan","enggan menuntut ilmu"],1],
+["Perilaku mengurangi takaran atau timbangan ketika menjual barang termasuk perbuatan ....",["amanah","adil","curang","dermawan"],2],
+["Dalam Surah Al-Muthaffifin ayat 14 dijelaskan bahwa dosa yang terus dilakukan dapat menyebabkan hati menjadi ....",["tenang dan tenteram","tertutup oleh karat dosa","semakin peka","mudah menerima nasihat"],1],
+["Salah satu pesan Surah Al-An’am ayat 152 dalam kegiatan jual beli adalah ....",["membolehkan kecurangan jika disepakati","menyempurnakan takaran dan timbangan dengan adil","mengutamakan keuntungan sebesar-besarnya","mengurangi hak pembeli"],1],
+["Menurut Surah Al-An’am ayat 152, harta anak yatim tidak boleh didekati kecuali dengan cara ....",["yang paling menguntungkan pengelola","yang baik hingga ia dewasa","yang disetujui semua pedagang","yang cepat menghasilkan"],1],
+["Sikap jujur dalam bermuamalah berarti ....",["menyampaikan keadaan barang dan transaksi sesuai kenyataan","menyembunyikan kekurangan barang agar cepat laku","menaikkan timbangan untuk pelanggan tertentu saja","mengubah janji sesuai keadaan"],0],
+["Contoh penerapan kejujuran ketika berdagang adalah ....",["mencampur barang baik dengan barang rusak tanpa memberi tahu","menyebutkan cacat barang sebelum pembeli memutuskan","mengurangi ukuran barang setelah pembayaran","menggunakan alat ukur yang tidak tepat"],1],
+["Jika penjual mengetahui bahwa timbangan yang digunakan tidak akurat, tindakan yang tepat adalah ....",["tetap menggunakannya agar tidak rugi","memperbaiki atau menggantinya dan menjelaskan kepada pembeli bila diperlukan","menyalahkan pembeli","mengurangi harga tanpa memperbaiki timbangan"],1],
+["Salah satu akibat buruk perilaku curang dalam muamalah adalah ....",["meningkatnya kepercayaan masyarakat","terciptanya keadilan","hilangnya kepercayaan dan timbulnya perselisihan","hubungan sosial semakin kuat"],2],
+["Hadis tentang kejujuran dalam muamalah mengajarkan bahwa seorang muslim hendaknya ....",["mengutamakan keuntungan dengan segala cara","menjauhi keraguan dan memilih kejujuran","menutupi kesalahan selama tidak diketahui","mengingkari janji jika merugi"],1],
+["Makna umum pesan hadis tentang kejujuran dalam jual beli adalah ....",["kejujuran menjadi dasar keberkahan dan kepercayaan dalam transaksi","pembeli selalu benar dalam semua keadaan","penjual tidak perlu menjelaskan kondisi barang","keuntungan merupakan satu-satunya tujuan jual beli"],0],
+["Sikap amanah dalam bermuamalah ditunjukkan oleh perilaku ....",["menggunakan titipan tanpa izin","mengembalikan barang pinjaman sesuai kesepakatan","menunda pembayaran tanpa alasan","mengingkari kesepakatan lisan"],1],
+["Ketika menemukan uang lebih yang diberikan kasir, tindakan yang sesuai dengan nilai jujur adalah ....",["menyimpannya karena bukan kesalahan kita","membagikannya kepada teman","mengembalikannya kepada kasir","menggunakannya untuk membeli makanan"],2],
+["Dalam bermuamalah, kesepakatan atau persetujuan antara pihak-pihak yang bertransaksi disebut ....",["akad","takaran","timbangan","sedekah"],0],
+["Salah satu bentuk perkataan yang benar dalam bermuamalah adalah ....",["memberikan informasi yang dilebih-lebihkan","menyampaikan kondisi barang apa adanya","berjanji tanpa niat menepati","menyembunyikan informasi penting"],1],
+["Menurut ajaran Islam, jujur tidak hanya dalam ucapan, tetapi juga harus diwujudkan dalam ....",["niat dan tindakan","penampilan saja","pergaulan dengan orang kaya saja","urusan ibadah saja"],0],
+["Apabila terjadi perselisihan dalam transaksi, cara yang paling sesuai dengan nilai jujur dan adil adalah ....",["memaksakan kehendak","menyebarkan keburukan pihak lain","memeriksa kesepakatan dan menyelesaikan masalah secara terbuka","menghindari tanggung jawab"],2]
+];
+const letters=["A","B","C","D"];
+let studentName="";
+const intro=document.getElementById("intro"), quiz=document.getElementById("quiz"), result=document.getElementById("result");
+function renderQuiz(){
+ const form=document.getElementById("quizForm"); form.innerHTML="";
+ questions.forEach((q,i)=>{
+  const section=document.createElement("section"); section.className="question";
+  const h=document.createElement("h3"); h.innerHTML=`<span class="number">${i+1}.</span> ${q[0]}`; section.appendChild(h);
+  q[1].forEach((option,j)=>{
+   const label=document.createElement("label"); label.className="option";
+   const radio=document.createElement("input"); radio.type="radio"; radio.name=`q${i}`; radio.value=j;
+   radio.addEventListener("change",updateProgress);
+   const span=document.createElement("span"); span.textContent=`${letters[j]}. ${option}`;
+   label.append(radio,span); section.appendChild(label);
+  });
+  form.appendChild(section);
+ });
+ updateProgress();
+}
+function updateProgress(){
+ const count=document.querySelectorAll('#quizForm input:checked').length;
+ document.getElementById("progressText").textContent=`${count} dari ${questions.length} terjawab`;
+ document.getElementById("progressBar").style.width=(count/questions.length*100)+"%";
+}
+function start(){
+ studentName=document.getElementById("student").value.trim();
+ if(!studentName){alert("Silakan isi nama terlebih dahulu.");return;}
+ intro.classList.add("hidden"); result.classList.add("hidden"); quiz.classList.remove("hidden");
+ document.getElementById("studentLabel").textContent="Peserta: "+studentName;
+ renderQuiz(); window.scrollTo({top:0,behavior:"smooth"});
+}
+function submitQuiz(){
+ const answered=document.querySelectorAll('#quizForm input:checked').length;
+ if(answered<questions.length && !confirm(`Baru ${answered} dari ${questions.length} soal terjawab. Tetap kumpulkan?`))return;
+ let correct=0; const review=document.getElementById("review"); review.innerHTML="";
+ questions.forEach((q,i)=>{
+  const selected=document.querySelector(`input[name="q${i}"]:checked`);
+  const chosen=selected?Number(selected.value):-1; const ok=chosen===q[2]; if(ok)correct++;
+  const div=document.createElement("div"); div.className="review-item "+(ok?"correct":"wrong");
+  const title=document.createElement("strong"); title.textContent=`${i+1}. ${ok?"Benar":"Belum tepat"}`;
+  const detail=document.createElement("div"); detail.textContent=`Jawaban benar: ${letters[q[2]]}. ${q[1][q[2]]}`;
+  const your=document.createElement("div"); your.className="small"; your.textContent=chosen<0?"Jawaban Anda: belum dijawab":`Jawaban Anda: ${letters[chosen]}. ${q[1][chosen]}`;
+  div.append(title,detail,your); review.appendChild(div);
+ });
+ const score=Math.round(correct/questions.length*100);
+ document.getElementById("resultName").textContent="Nama: "+studentName;
+ document.getElementById("score").textContent=score;
+ document.getElementById("summary").textContent=`Jawaban benar ${correct} dari ${questions.length} soal.`;
+ quiz.classList.add("hidden"); result.classList.remove("hidden"); window.scrollTo({top:0,behavior:"smooth"});
+}
+function reset(){document.getElementById("quizForm").innerHTML="";document.getElementById("student").value="";studentName="";quiz.classList.add("hidden");result.classList.add("hidden");intro.classList.remove("hidden");window.scrollTo({top:0,behavior:"smooth"});}
+document.getElementById("startBtn").addEventListener("click",start);
+document.getElementById("submitBtn").addEventListener("click",submitQuiz);
+document.getElementById("resetBtn").addEventListener("click",reset);
+document.getElementById("againBtn").addEventListener("click",reset);
+</script>
+</body>
+</html>
